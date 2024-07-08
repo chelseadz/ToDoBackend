@@ -66,7 +66,7 @@ public class ToDo {
     public LocalDateTime forceDueDate() {
         if (this.dueDate != null){return this.dueDate;}
         else{ 
-            LocalDateTime dummyDate = LocalDateTime.of(1900,01,01,01,01,01);
+            LocalDateTime dummyDate = LocalDateTime.of(2900,01,01,01,01,01);
             return dummyDate;
         }
     }

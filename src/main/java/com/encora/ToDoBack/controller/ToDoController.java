@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "*")
 @RestController
 public class ToDoController {
 
@@ -92,9 +92,7 @@ public class ToDoController {
         }
         if (sortByDate) {
             todos.sort((t1, t2) -> (t1.forceDueDate()).compareTo(t2.forceDueDate()));
-        } else{
-            todos.sort((t1, t2) -> (t2.forceDueDate()).compareTo(t1.forceDueDate()));
-        }
+        } 
         if (sortByPrior) {
             todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority()));
         } 
