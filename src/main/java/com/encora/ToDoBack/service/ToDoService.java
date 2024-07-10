@@ -56,15 +56,9 @@ public class ToDoService {
     public ToDo update(String id, Optional<String> text, Optional<Priority> priority, Optional<LocalDateTime> dueDate){
         ToDo todo = db.get(id);
         if(todo!= null){
-            if (text.isPresent()){
-                todo.setText(text.get());
-            }
-            if (priority.isPresent()){
-                todo.setPriority(priority.get());
-            }
-            if (dueDate.isPresent()){
-                todo.setDueDate(dueDate.get());
-            }
+            text.ifPresent(todo::setText);
+            priority.ifPresent(todo::setPriority);
+            dueDate.ifPresent(todo::setDueDate);
 
             db.put(id, todo);
 

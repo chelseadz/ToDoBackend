@@ -6,17 +6,19 @@ import org.springframework.web.server.ResponseStatusException;
 import com.encora.ToDoBack.model.ToDo;
 import com.encora.ToDoBack.model.ToDo.Priority;
 import com.encora.ToDoBack.service.ToDoService;
+import com.encora.ToDoBack.model.Pagination;
+
 import java.util.Optional;
 import java.time.LocalDateTime;
-
-
-import jakarta.validation.Valid;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+
+import jakarta.validation.Valid;
+
+import org.json.JSONObject;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,7 +32,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://192.168.1.66:8080")
 @RestController
 public class ToDoController {
 
@@ -53,57 +55,74 @@ public class ToDoController {
         return todo;
     }
 
+    private boolean filterByName(ToDo todo, String filterName){
+        if (filterName != null) {
+            return todo.getText().toLowerCase().contains(filterName.toLowerCase());
+        }
+        return true;
+    }
+
+    private boolean filterByPriority(ToDo todo, String filterPriority){
+        if (filterPriority!=null && !filterPriority.equalsIgnoreCase("all")) {
+            return todo.getPriority() == Priority.valueOf(filterPriority.toUpperCase());
+        }
+        return true;
+    }
+
+    private boolean filterByDone(ToDo todo, String filterDone){
+        if (filterDone != null && !filterDone.equalsIgnoreCase("all")) {
+            if (filterDone.equals("done")){
+                return todo.isDone();
+            }else{
+                return !todo.isDone();
+            }
+        }
+        return true;
+    }
+
+    //@GetMapping("/todos?{pagesize}&{pageNumber}&{sortByDone}&{sortByDate}&{sortByPriority}&{nameFilter}&{priorityFilter}&{doneFilter}")
     @GetMapping("/todos")
     public Collection<ToDo> getCustom(
         @RequestParam int pageSize,
         @RequestParam int pageNumber,
         @RequestParam(required = false, defaultValue = "false") boolean sortByDone,
         @RequestParam(required = false, defaultValue = "false") boolean sortByDate,
-        @RequestParam(required = false, defaultValue = "false") boolean sortByPrior,
+        @RequestParam(required = false, defaultValue = "false") boolean sortByPriority,
         @RequestParam(required = false, defaultValue = "") String nameFilter,
         @RequestParam(required = false, defaultValue = "all") String priorityFilter,
         @RequestParam(required = false, defaultValue = "all") String doneFilter
+    ){
 
-    ) {
         Collection<ToDo> todosCollection = toDoService.get(); 
         List<ToDo> todos = new ArrayList<>(todosCollection);
 
-        if (nameFilter.length()>0) {
-            todos.removeIf(todo -> !todo.getText().toLowerCase().contains(nameFilter.toLowerCase()));
-        }
-    
-        if (!priorityFilter.equalsIgnoreCase("all")) {
-            todos.removeIf(todo -> todo.getPriority() != Priority.valueOf(priorityFilter.toUpperCase()));
-        }
-    
-        if (!doneFilter.equalsIgnoreCase("all")) {
-            if (doneFilter.equals("done")){
-                todos.removeIf(todo -> !todo.isDone());
-            }else{
-                todos.removeIf(todo -> todo.isDone());
-            }
-        }
-
-        
-        todos.sort((t1, t2) -> (t2.getCreationDate()).compareTo(t1.getCreationDate()));
-        if (sortByDate) {
-            todos.sort((t1, t2) -> (t1.forceDueDate()).compareTo(t2.forceDueDate()));
-        } 
-        if (sortByPrior) {
-            todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority()));
-        } 
-
-        if (sortByDone) {
-            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone()));
-        }else{
-            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone()));
-        }
-
-        int fromIndex = pageSize * (pageNumber - 1);
-        int toIndex = Math.min(fromIndex + pageSize, todos.size());
+        Pagination pagination = new Pagination(pageSize, pageNumber);
+        int fromIndex = pagination.getPageSize() * (pagination.getPageNumber() - 1);
+        int toIndex = Math.min(fromIndex + pagination.getPageSize(), todos.size());
 
         if (fromIndex > todos.size()) {
             return Collections.emptyList();
+        }
+        
+        todos = todos.stream()
+            .filter(todo -> filterByName(todo, nameFilter))
+            .filter(todo -> filterByPriority(todo, priorityFilter))
+            .filter(todo -> filterByDone(todo, doneFilter))
+            .collect(java.util.stream.Collectors.toList());
+        
+        todos.sort((t1, t2) -> t2.getCreationDate().compareTo(t1.getCreationDate()));   // order by creation date, new tasks at the beggining
+        if (sortByDate) {
+            todos.sort((t1, t2) -> t1.forceDueDate().compareTo(t2.forceDueDate())); // sort by due date
+        }
+
+        if (sortByPriority) {
+            todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority())); // sort by priority
+        }
+
+        if (sortByDone) {
+            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone())); // sort by done, done tasks at the beginning
+        } else {
+            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone())); // sort by done, done tasks at the end
         }
 
         List<ToDo> paginatedTodos = todos.subList(fromIndex, toIndex);
@@ -119,7 +138,7 @@ public class ToDoController {
     }
 
 
-    @PostMapping("/todos")
+    @PostMapping("/todos/update")
     public ToDo create(@RequestBody @Valid String jsonString) {
         JSONObject jsonObject = new JSONObject(jsonString);
 
@@ -146,7 +165,7 @@ public class ToDoController {
 
         JSONObject jsonObject = new JSONObject(entity);
 
-        Optional<String> text;
+        Optional<String> text; 
         String str = jsonObject.getString("text");
         if (str.length() != 0){
             text = Optional.of(str);
@@ -196,5 +215,22 @@ public class ToDoController {
         return entity;
     }
 
+/*
+    @PutMapping("todos/{id}/undone")
+    public String putDone(@PathVariable String id) {
+
+        ToDo todo = toDoService.update(id, false);
+        
+        if (todo == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        if(done){
+            todo.setDoneDate(LocalDateTime.now());
+        }else{
+            todo.setDoneDate(null);
+        }
+
+        return entity;
+    }
+ */
 }
 

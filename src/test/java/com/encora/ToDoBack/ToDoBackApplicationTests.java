@@ -26,7 +26,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.encora.ToDoBack.controller.ToDoController;
+import com.encora.ToDoBack.model.Pagination;
 import com.encora.ToDoBack.model.ToDo;
+import com.encora.ToDoBack.model.Pagination;
+
 import com.encora.ToDoBack.model.ToDo.Priority;
 import com.encora.ToDoBack.service.ToDoService;
 
@@ -161,9 +164,8 @@ class ToDoControllerTest {
         when(toDoService.get()).thenReturn(todos);
 
         Collection<ToDo> result = toDoController.getCustom(
-            1, 1, true, true, true, "task", "all", "all"
-        );
+            1,1, true, true, true, "task", "all", "all" );
 
         assertEquals(1, result.size());
-    }
+    } 
 }
