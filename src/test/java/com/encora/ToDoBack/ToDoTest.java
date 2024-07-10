@@ -123,7 +123,7 @@ class ToDoTest {
     void forceDueDate_shouldReturnDefaultDateWhenDueDateIsNull() {
         ToDo toDo = new ToDo("Test task", ToDo.Priority.MEDIUM);
 
-        LocalDateTime expectedDummyDate = LocalDateTime.of(1900, 1, 1, 1, 1, 1);
+        LocalDateTime expectedDummyDate = LocalDateTime.of(2900, 1, 1, 1, 1, 1);
 
         assertEquals(expectedDummyDate, toDo.forceDueDate());
     }
