@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://192.168.1.66:8080")
 @RestController
 public class ToDoController {
 
@@ -82,32 +82,50 @@ public class ToDoController {
         return true;
     }
 
-    @PostMapping("/todos")
-    public Collection<ToDo> getCustom(@RequestParam JSONObject request ) {
-        System.out.println(Request);
-        Pagination pagination = request.getPagination();
+    //@GetMapping("/todos?{pagesize}&{pageNumber}&{sortByDone}&{sortByDate}&{sortByPriority}&{nameFilter}&{priorityFilter}&{doneFilter}")
+    @GetMapping("/todos")
+    public Collection<ToDo> getCustom(
+        @PathVariable int pageSize,
+        @PathVariable int pageNumber,
+        @PathVariable boolean sortByDone,
+        @PathVariable boolean sortByDate,
+        @PathVariable boolean sortByPriority,
+        @PathVariable String nameFilter,
+        @PathVariable String priorityFilter,
+        @PathVariable String doneFilter
+    ){
+        System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s", pageSize,
+        pageNumber,
+        sortByDone,
+        sortByDate,
+        sortByPriority,
+        nameFilter,
+        priorityFilter,
+        doneFilter);
+        
+        Pagination pagination = new Pagination(pageSize, pageNumber);
 
         Collection<ToDo> todosCollection = toDoService.get(); 
         List<ToDo> todos = new ArrayList<>(todosCollection);
         
         todos = todos.stream()
-            .filter(todo -> filterByName(todo, request.getNameFilter()))
-            .filter(todo -> filterByPriority(todo, request.getPriorityFilter()))
-            .filter(todo -> filterByDone(todo, request.getDoneFilter())).collect(java.util.stream.Collectors.toList());
+            .filter(todo -> filterByName(todo, nameFilter))
+            .filter(todo -> filterByPriority(todo, priorityFilter))
+            .filter(todo -> filterByDone(todo, doneFilter)).collect(java.util.stream.Collectors.toList());
     
-        System.out.println(request.getPagination().getPageSize());
-        System.out.println(request.getNameFilter());
+        System.out.println(pagination.getPageSize());
+        System.out.println(nameFilter);
         
         todos.sort((t1, t2) -> t2.getCreationDate().compareTo(t1.getCreationDate()));   // order by creation date, new tasks at the beggining
         
-        if (request.isSortByDate()) {
+        if (sortByDate) {
             todos.sort((t1, t2) -> (t1.forceDueDate()).compareTo(t2.forceDueDate()));   // sort by due date
         } 
-        if (request.isSortByPriority()) {
+        if (sortByPriority) {
             todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority()));
         } 
 
-        if (request.isSortByDone()) {
+        if (sortByDone) {
             todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone()));          
         }else{
             todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone()));  // sort by done, done tasks at the end
