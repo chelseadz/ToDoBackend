@@ -60,28 +60,27 @@ public class ToDoController {
         @RequestParam(required = false, defaultValue = "false") boolean sortByDone,
         @RequestParam(required = false, defaultValue = "false") boolean sortByDate,
         @RequestParam(required = false, defaultValue = "false") boolean sortByPrior,
-        @RequestParam(required = false, defaultValue = "") String filterName,
-        @RequestParam(required = false, defaultValue = "all") String filterPriority,
-        @RequestParam(required = false, defaultValue = "all") String filterDone
+        @RequestParam(required = false, defaultValue = "") String nameFilter,
+        @RequestParam(required = false, defaultValue = "all") String priorityFilter,
+        @RequestParam(required = false, defaultValue = "all") String doneFilter
 
     ) {
         Collection<ToDo> todosCollection = toDoService.get(); 
         List<ToDo> todos = new ArrayList<>(todosCollection);
 
-        if (filterName.length()>0) {
-            todos.removeIf(todo -> !todo.getText().toLowerCase().contains(filterName.toLowerCase()));
+        if (nameFilter.length()>0) {
+            todos.removeIf(todo -> !todo.getText().toLowerCase().contains(nameFilter.toLowerCase()));
         }
     
-        if (!filterPriority.equals("all") && !filterPriority.equals("ALL")) {
-            todos.removeIf(todo -> todo.getPriority() != Priority.valueOf(filterPriority.toUpperCase()));
+        if (!priorityFilter.equals("all") && !priorityFilter.equals("ALL")) {
+            todos.removeIf(todo -> todo.getPriority() != Priority.valueOf(priorityFilter.toUpperCase()));
         }
     
-        if (!filterDone.equals("all") && !filterDone.equals("ALL")) {
-            boolean isDone = (filterDone == "done");
-            if (isDone){
-                todos.removeIf(todo -> todo.isDone() != isDone);
+        if (!doneFilter.equals("all") && !doneFilter.equals("ALL")) {
+            if (doneFilter.equals("done")){
+                todos.removeIf(todo -> !todo.isDone());
             }else{
-                todos.removeIf(todo -> todo.isDone() == isDone);
+                todos.removeIf(todo -> todo.isDone());
             }
         }
 
