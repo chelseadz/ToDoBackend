@@ -97,12 +97,6 @@ public class ToDoController {
         List<ToDo> todos = new ArrayList<>(todosCollection);
 
         Pagination pagination = new Pagination(pageSize, pageNumber);
-        int fromIndex = pagination.getPageSize() * (pagination.getPageNumber() - 1);
-        int toIndex = Math.min(fromIndex + pagination.getPageSize(), todos.size());
-
-        if (fromIndex > todos.size()) {
-            return Collections.emptyList();
-        }
         
         todos = todos.stream()
             .filter(todo -> filterByName(todo, nameFilter))
@@ -123,6 +117,14 @@ public class ToDoController {
             todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone())); // sort by done, done tasks at the beginning
         } else {
             todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone())); // sort by done, done tasks at the end
+        }
+
+
+        int fromIndex = pagination.getPageSize() * (pagination.getPageNumber() - 1);
+        int toIndex = Math.min(fromIndex + pagination.getPageSize(), todos.size());
+
+        if (fromIndex > todos.size()) {
+            return Collections.emptyList();
         }
 
         List<ToDo> paginatedTodos = todos.subList(fromIndex, toIndex);
