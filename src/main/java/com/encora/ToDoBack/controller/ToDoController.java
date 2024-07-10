@@ -6,21 +6,19 @@ import org.springframework.web.server.ResponseStatusException;
 import com.encora.ToDoBack.model.ToDo;
 import com.encora.ToDoBack.model.ToDo.Priority;
 import com.encora.ToDoBack.service.ToDoService;
+import com.encora.ToDoBack.model.Pagination;
+
 import java.util.Optional;
 import java.time.LocalDateTime;
-
-
-import jakarta.validation.Valid;
-
-import com.encora.ToDoBack.model.Pagination;
-import com.encora.ToDoBack.model.ToDoRequest;
-
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+
+import jakarta.validation.Valid;
+
+import org.json.JSONObject;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -85,57 +83,46 @@ public class ToDoController {
     //@GetMapping("/todos?{pagesize}&{pageNumber}&{sortByDone}&{sortByDate}&{sortByPriority}&{nameFilter}&{priorityFilter}&{doneFilter}")
     @GetMapping("/todos")
     public Collection<ToDo> getCustom(
-        @PathVariable int pageSize,
-        @PathVariable int pageNumber,
-        @PathVariable boolean sortByDone,
-        @PathVariable boolean sortByDate,
-        @PathVariable boolean sortByPriority,
-        @PathVariable String nameFilter,
-        @PathVariable String priorityFilter,
-        @PathVariable String doneFilter
+        @RequestParam int pageSize,
+        @RequestParam int pageNumber,
+        @RequestParam(required = false, defaultValue = "false") boolean sortByDone,
+        @RequestParam(required = false, defaultValue = "false") boolean sortByDate,
+        @RequestParam(required = false, defaultValue = "false") boolean sortByPriority,
+        @RequestParam(required = false, defaultValue = "") String nameFilter,
+        @RequestParam(required = false, defaultValue = "all") String priorityFilter,
+        @RequestParam(required = false, defaultValue = "all") String doneFilter
     ){
-        System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s", pageSize,
-        pageNumber,
-        sortByDone,
-        sortByDate,
-        sortByPriority,
-        nameFilter,
-        priorityFilter,
-        doneFilter);
-        
-        Pagination pagination = new Pagination(pageSize, pageNumber);
 
         Collection<ToDo> todosCollection = toDoService.get(); 
         List<ToDo> todos = new ArrayList<>(todosCollection);
-        
-        todos = todos.stream()
-            .filter(todo -> filterByName(todo, nameFilter))
-            .filter(todo -> filterByPriority(todo, priorityFilter))
-            .filter(todo -> filterByDone(todo, doneFilter)).collect(java.util.stream.Collectors.toList());
-    
-        System.out.println(pagination.getPageSize());
-        System.out.println(nameFilter);
-        
-        todos.sort((t1, t2) -> t2.getCreationDate().compareTo(t1.getCreationDate()));   // order by creation date, new tasks at the beggining
-        
-        if (sortByDate) {
-            todos.sort((t1, t2) -> (t1.forceDueDate()).compareTo(t2.forceDueDate()));   // sort by due date
-        } 
-        if (sortByPriority) {
-            todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority()));
-        } 
 
-        if (sortByDone) {
-            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone()));          
-        }else{
-            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone()));  // sort by done, done tasks at the end
-        }
-
+        Pagination pagination = new Pagination(pageSize, pageNumber);
         int fromIndex = pagination.getPageSize() * (pagination.getPageNumber() - 1);
         int toIndex = Math.min(fromIndex + pagination.getPageSize(), todos.size());
 
         if (fromIndex > todos.size()) {
             return Collections.emptyList();
+        }
+        
+        todos = todos.stream()
+            .filter(todo -> filterByName(todo, nameFilter))
+            .filter(todo -> filterByPriority(todo, priorityFilter))
+            .filter(todo -> filterByDone(todo, doneFilter))
+            .collect(java.util.stream.Collectors.toList());
+        
+        todos.sort((t1, t2) -> t2.getCreationDate().compareTo(t1.getCreationDate()));   // order by creation date, new tasks at the beggining
+        if (sortByDate) {
+            todos.sort((t1, t2) -> t1.forceDueDate().compareTo(t2.forceDueDate())); // sort by due date
+        }
+
+        if (sortByPriority) {
+            todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority())); // sort by priority
+        }
+
+        if (sortByDone) {
+            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone())); // sort by done, done tasks at the beginning
+        } else {
+            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone())); // sort by done, done tasks at the end
         }
 
         List<ToDo> paginatedTodos = todos.subList(fromIndex, toIndex);
