@@ -72,11 +72,11 @@ public class ToDoController {
             todos.removeIf(todo -> !todo.getText().toLowerCase().contains(nameFilter.toLowerCase()));
         }
     
-        if (!priorityFilter.equals("all") && !priorityFilter.equals("ALL")) {
+        if (!priorityFilter.equalsIgnoreCase("all")) {
             todos.removeIf(todo -> todo.getPriority() != Priority.valueOf(priorityFilter.toUpperCase()));
         }
     
-        if (!doneFilter.equals("all") && !doneFilter.equals("ALL")) {
+        if (!doneFilter.equalsIgnoreCase("all")) {
             if (doneFilter.equals("done")){
                 todos.removeIf(todo -> !todo.isDone());
             }else{
@@ -84,17 +84,20 @@ public class ToDoController {
             }
         }
 
-        if (sortByDone) {
-            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone()));
-        }else{
-            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone()));
-        }
+        
+        todos.sort((t1, t2) -> (t2.getCreationDate()).compareTo(t1.getCreationDate()));
         if (sortByDate) {
             todos.sort((t1, t2) -> (t1.forceDueDate()).compareTo(t2.forceDueDate()));
         } 
         if (sortByPrior) {
             todos.sort((t1, t2) -> t1.getPriority().compareTo(t2.getPriority()));
         } 
+
+        if (sortByDone) {
+            todos.sort((t1, t2) -> Boolean.compare(t2.isDone(), t1.isDone()));
+        }else{
+            todos.sort((t1, t2) -> Boolean.compare(t1.isDone(), t2.isDone()));
+        }
 
         int fromIndex = pageSize * (pageNumber - 1);
         int toIndex = Math.min(fromIndex + pageSize, todos.size());
