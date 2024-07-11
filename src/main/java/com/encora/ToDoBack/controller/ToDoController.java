@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-
 import jakarta.validation.Valid;
 
 import org.json.JSONObject;
@@ -31,8 +30,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
-
-@CrossOrigin(origins = "http://192.168.1.66:8080")
+@CrossOrigin(origins = "*")
 @RestController
 public class ToDoController {
 
@@ -139,8 +137,7 @@ public class ToDoController {
         if (todo == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-
-    @PostMapping("/todos/update")
+    @PostMapping("/todos")
     public ToDo create(@RequestBody @Valid String jsonString) {
         JSONObject jsonObject = new JSONObject(jsonString);
 
@@ -161,6 +158,7 @@ public class ToDoController {
         
         return todo;
     }
+
 
     @PutMapping("todos/{id}")
     public String put(@PathVariable String id, @RequestBody String entity) {
