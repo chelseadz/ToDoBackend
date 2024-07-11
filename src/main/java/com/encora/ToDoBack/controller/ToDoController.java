@@ -161,32 +161,24 @@ public class ToDoController {
 
 
     @PutMapping("todos/{id}")
-    public String put(@PathVariable String id, @RequestBody String entity) {
+    public String update(@PathVariable String id, @RequestBody String entity) {
 
         JSONObject jsonObject = new JSONObject(entity);
 
-        Optional<String> text; 
-        String str = jsonObject.getString("text");
-        if (str.length() != 0){
-            text = Optional.of(str);
-        }else{
-            text = Optional.empty();
+        String text = null;
+        if (jsonObject.getString("text").length() > 0){
+            text = jsonObject.getString("text");
         }
 
-        Optional<Priority> priority;
-        String prior = jsonObject.getString("priority");
-        if (prior.length() != 0){
-            priority = Optional.of(Priority.valueOf(jsonObject.getString("priority")));
-        }else{
-            priority= Optional.empty();
+        Priority priority = null;
+        if (jsonObject.getString("priority").length() > 0){
+            priority = Priority.valueOf(jsonObject.getString("priority"));
         }
 
-        Optional<LocalDateTime> dueDate;
+        LocalDateTime dueDate = null;
         String date = jsonObject.getString("dueDate");
-        if (date.length() != 0){
-            dueDate = Optional.of(LocalDateTime.parse(date));
-        }else{
-            dueDate = Optional.empty();
+        if (date.length() > 0){
+            dueDate =LocalDateTime.parse(date);
         }
 
         ToDo todo = toDoService.update(id, text, priority, dueDate);

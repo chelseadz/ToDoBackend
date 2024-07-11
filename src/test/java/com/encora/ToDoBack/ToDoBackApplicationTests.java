@@ -133,10 +133,10 @@ class ToDoControllerTest {
 
         when(toDoService.update(eq(id), any(), any(), any())).thenReturn(todo);
 
-        String result = toDoController.put(id, entity);
+        String result = toDoController.update(id, entity);
 
         assertEquals(entity, result);
-        verify(toDoService).update(eq(id), eq(Optional.of("updated text")), eq(Optional.of(Priority.HIGH)), eq(Optional.of(LocalDateTime.parse("2024-07-07T10:15:30"))));
+        verify(toDoService).update(eq(id), eq("updated text"), eq(Priority.HIGH), eq(LocalDateTime.parse("2024-07-07T10:15:30")));
     }
 
     @Test

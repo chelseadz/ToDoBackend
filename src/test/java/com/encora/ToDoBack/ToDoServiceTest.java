@@ -94,18 +94,18 @@ class ToDoServiceTest {
         ToDo toDo = toDoService.get().iterator().next();
         String newText = "Updated Task";
         Priority newPriority = Priority.LOW;
-        Optional<LocalDateTime> newDueDate = Optional.of(LocalDateTime.now().plusDays(2));
+        LocalDateTime newDueDate = LocalDateTime.now().plusDays(2);
 
-        ToDo updatedToDo = toDoService.update(toDo.getId(), Optional.of(newText), Optional.of(newPriority), newDueDate);
+        ToDo updatedToDo = toDoService.update(toDo.getId(), newText, newPriority, newDueDate);
 
         assertEquals(newText, updatedToDo.getText());
         assertEquals(newPriority, updatedToDo.getPriority());
-        assertEquals(newDueDate.get(), updatedToDo.getDueDate());
+        assertEquals(newDueDate, updatedToDo.getDueDate());
     }
 
     @Test
     void update_withInvalidId_shouldReturnNull() {
-        ToDo updatedToDo = toDoService.update("non-existent-id", Optional.of("Invalid Update"), Optional.of(Priority.LOW), Optional.of(LocalDateTime.now().plusDays(2)));
+        ToDo updatedToDo = toDoService.update("non-existent-id", "Invalid Update", Priority.LOW, LocalDateTime.now().plusDays(2));
         assertNull(updatedToDo);
     }
 

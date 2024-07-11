@@ -15,7 +15,7 @@ public class ToDoService {
 
     private HashMap<String,ToDo> db = new HashMap<>(){{
 
-        for(int i = 0; i<45; i++){
+        for(int i = 0; i<25; i++){
             ToDo todo =new ToDo("tarea " + Integer.toString(i), Priority.HIGH);
             if(i%3 == 0){
                 todo.setDone(true);
@@ -53,12 +53,12 @@ public class ToDoService {
         
     }
 
-    public ToDo update(String id, Optional<String> text, Optional<Priority> priority, Optional<LocalDateTime> dueDate){
+    public ToDo update(String id, String text, Priority priority, LocalDateTime dueDate){
         ToDo todo = db.get(id);
         if(todo!= null){
-            text.ifPresent(todo::setText);
-            priority.ifPresent(todo::setPriority);
-            dueDate.ifPresent(todo::setDueDate);
+            if (text != null) { todo.setText(text); };
+            if (priority != null) {todo.setPriority(priority);};
+            if (dueDate != null) {todo.setDueDate(dueDate);};
 
             db.put(id, todo);
 
